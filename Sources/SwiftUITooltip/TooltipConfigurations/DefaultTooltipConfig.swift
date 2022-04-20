@@ -10,13 +10,13 @@ import SwiftUI
 public struct DefaultTooltipConfig: TooltipConfig {
     static var shared = DefaultTooltipConfig()
 
-    public var side: TooltipSide = .bottom
+    public var side: TooltipSide = .leading
     public var margin: CGFloat = 8
 
     public var borderRadius: CGFloat = 8
     public var borderWidth: CGFloat = 2
-    public var borderColor: Color = Color.primary
-    public var backgroundColor: Color = Color.clear
+    public var borderColor: Color = Color.black
+    public var backgroundColor: Color = Color.black
 
     public var contentPaddingLeft: CGFloat = 8
     public var contentPaddingRight: CGFloat = 8
