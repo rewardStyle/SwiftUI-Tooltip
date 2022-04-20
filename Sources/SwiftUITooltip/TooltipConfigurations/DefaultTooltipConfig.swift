@@ -15,8 +15,8 @@ public struct DefaultTooltipConfig: TooltipConfig {
 
     public var borderRadius: CGFloat = 8
     public var borderWidth: CGFloat = 2
-    public var borderColor: Color = Color.primary
-    public var backgroundColor: Color = Color.clear
+    public var borderColor: Color = Color.black
+    public var backgroundColor: Color = Color.black
 
     public var contentPaddingLeft: CGFloat = 8
     public var contentPaddingRight: CGFloat = 8

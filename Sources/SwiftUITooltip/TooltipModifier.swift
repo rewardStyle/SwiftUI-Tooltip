@@ -8,14 +8,19 @@
 import SwiftUI
 
 struct TooltipModifier<TooltipContent: View>: ViewModifier {
+
     // MARK: - Uninitialised properties
 
     var config: TooltipConfig
     var content: TooltipContent
 
+    /// Indicates whether tooltips are displayed.
+    @Binding var isPresented: Bool
+
     // MARK: - Initialisers
 
-    init(config: TooltipConfig, @ViewBuilder content: @escaping () -> TooltipContent) {
+    init(isPresented: Binding<Bool>, config: TooltipConfig, @ViewBuilder content: @escaping () -> TooltipContent) {
+        _isPresented = isPresented
         self.config = config
         self.content = content()
     }
@@ -24,7 +29,7 @@ struct TooltipModifier<TooltipContent: View>: ViewModifier {
 
     @State private var contentWidth: CGFloat = 10
     @State private var contentHeight: CGFloat = 10
-    
+
     @State var animationOffset: CGFloat = 0
 
     // MARK: - Computed properties
@@ -97,16 +102,16 @@ struct TooltipModifier<TooltipContent: View>: ViewModifier {
             return (g.size.height - contentHeight) / 2
         }
     }
-    
+
     // MARK: - Animation stuff
-    
+
     private func dispatchAnimation() {
         if (config.enableAnimation) {
             DispatchQueue.main.asyncAfter(deadline: .now() + config.animationTime) {
                 self.animationOffset = config.animationOffset
                 DispatchQueue.main.asyncAfter(deadline: .now() + config.animationTime*0.1) {
                     self.animationOffset = 0
-                    
+
                     self.dispatchAnimation()
                 }
             }
@@ -134,7 +139,6 @@ struct TooltipModifier<TooltipContent: View>: ViewModifier {
                 .rotation(Angle(radians: self.arrowRotation))
                 .frame(width: self.config.arrowWidth+2, height: self.config.arrowHeight+1)
                 .foregroundColor(self.config.backgroundColor)
-                
             ).frame(width: self.config.arrowWidth, height: self.config.arrowHeight)
             .offset(x: self.arrowOffsetX, y: self.arrowOffsetY)
     }
@@ -163,23 +167,26 @@ struct TooltipModifier<TooltipContent: View>: ViewModifier {
     var tooltipBody: some View {
         GeometryReader { g in
             ZStack {
-                RoundedRectangle(cornerRadius: self.config.borderRadius)
-                    .stroke(self.config.borderWidth == 0 ? Color.clear : self.config.borderColor)
-                    .background(RoundedRectangle(cornerRadius: self.config.borderRadius)
-                                .foregroundColor(self.config.backgroundColor))
-                    .frame(width: self.contentWidth, height: self.contentHeight)
-                    .mask(self.arrowCutoutMask)
-                
-                ZStack {
-                    content
-                        .padding(self.config.contentPaddingEdgeInsets)
-                        .fixedSize()
-                }
-                .background(self.sizeMeasurer)
+                if isPresented {
+                    RoundedRectangle(cornerRadius: self.config.borderRadius)
+                        .stroke(self.config.borderWidth == 0 ? Color.clear : self.config.borderColor)
+                        .background(RoundedRectangle(cornerRadius: self.config.borderRadius)
+                                        .foregroundColor(self.config.backgroundColor))
+                        .frame(width: self.contentWidth, height: self.contentHeight)
+                        .mask(self.arrowCutoutMask)
+
+                    ZStack {
+                        content
+                            .padding(self.config.contentPaddingEdgeInsets)
+                            .fixedSize()
+                    }
+                    .background(self.sizeMeasurer)
                     .overlay(self.arrowView)
+                }
             }
             .offset(x: self.offsetHorizontal(g), y: self.offsetVertical(g))
             .animation(.easeInOut)
+            .opacity(isPresented ? 1 : 0)
             .onAppear {
                 self.dispatchAnimation()
             }
@@ -191,19 +198,5 @@ struct TooltipModifier<TooltipContent: View>: ViewModifier {
     func body(content: Content) -> some View {
         content
             .overlay(tooltipBody)
-    }
-}
-
-struct Tooltip_Previews: PreviewProvider {
-    static var previews: some View {
-        var config = DefaultTooltipConfig(side: .top)
-        config.backgroundColor = Color(red: 0.8, green: 0.9, blue: 1)
-        
-        
-        return VStack {
-            Text("Say...").tooltip(config: config) {
-                Text("Something nice!")
-            }
-        }.previewDevice(.init(stringLiteral: "iPhone 12 mini"))
     }
 }
