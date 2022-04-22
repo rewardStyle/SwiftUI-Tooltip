@@ -185,7 +185,6 @@ struct TooltipModifier<TooltipContent: View>: ViewModifier {
                 }
             }
             .offset(x: self.offsetHorizontal(g), y: self.offsetVertical(g))
-            .animation(.easeInOut)
             .opacity(isPresented ? 1 : 0)
             .onAppear {
                 self.dispatchAnimation()
